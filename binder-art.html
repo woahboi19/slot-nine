@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlotNine — Binder Art Oluşturucu</title>
+  <meta name="description" content="Yandan yüklemeli Pokémon TCG binder cepleri için dikiş paylı köprü (Yatay H) ve parçalı binder art çıktıları hazırlayın." />
+  <meta name="theme-color" content="#16181b" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/a4-sheet.css" />
+  <link rel="stylesheet" href="css/binder-art.css" />
+</head>
+<body>
+  <noscript><p class="noscript-msg">Bu uygulama JavaScript gerektirir.</p></noscript>
+
+  <header class="app-header no-print">
+    <a href="index.html" class="brand-lockup">
+      <svg class="brand-logo" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="9.25" y="2" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="16.5" y="2" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="2" y="9.25" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="9.25" y="9.25" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="16.5" y="9.25" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="2" y="16.5" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="9.25" y="16.5" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="17" y="17" width="4.5" height="4.5" rx="0.8" stroke="#7fa3b8" stroke-width="1.6" stroke-dasharray="2 1.5"/>
+      </svg>
+      <h1>SlotNine</h1>
+      <span class="brand-sub">TCG Binder Toolkit</span>
+    </a>
+
+    <nav class="tool-switcher" aria-label="Araç seçimi">
+      <a href="index.html" class="tool-tab">Yer Tutucu</a>
+      <a href="binder-art.html" class="tool-tab active" aria-current="page">Binder Art</a>
+      <a href="digital-binder.html" class="tool-tab">Dijital Binder</a>
+    </nav>
+
+    <div class="header-actions">
+      <button type="button" id="btnPrint" class="btn btn-primary">Yazdır</button>
+    </div>
+  </header>
+
+  <main class="app-workspace">
+    <aside id="sidebarArt" class="sidebar no-print">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Yeni Binder Art oluştur</h2>
+        </div>
+
+        <div class="form-group">
+          <label>1. Görsel seçin <span class="req">*</span></label>
+          <div class="art-upload-row">
+            <label class="btn btn-sm file-upload-btn">
+              Görsel yükle
+              <input type="file" id="artFileInput" accept="image/*" hidden />
+            </label>
+            <button type="button" id="btnArtSampleImg" class="btn btn-sm">Örnek manzara</button>
+          </div>
+          <p class="helper-text">Görseli yükledikten sonra sağdaki A4 önizlemesi üzerinde fareyle sürükleyerek kadrajlayabilirsiniz.</p>
+        </div>
+
+        <div class="form-group">
+          <label>2. Slot kalıbı</label>
+          <div id="artTemplateGrid" class="art-template-grid">
+            <button type="button" class="art-tpl-btn active" data-tpl="2x1">
+              <span class="art-tpl-title">2×1 Yatay</span>
+              <span class="art-tpl-sub">2 slot · Tek parça köprü</span>
+            </button>
+            <button type="button" class="art-tpl-btn" data-tpl="3x1">
+              <span class="art-tpl-title">3×1 Tam Satır</span>
+              <span class="art-tpl-sub">3 slot · 2. cep üstü köprü</span>
+            </button>
+            <button type="button" class="art-tpl-btn" data-tpl="2x2">
+              <span class="art-tpl-title">2×2 Kare (Yatay H)</span>
+              <span class="art-tpl-sub">4 slot · Yandan H-çentikli</span>
+            </button>
+            <button type="button" class="art-tpl-btn" data-tpl="3x3">
+              <span class="art-tpl-title">3×3 Tam Sayfa</span>
+              <span class="art-tpl-sub">9 slot · 4 çentikli poster</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="artCutMode">3. Kesim / yerleştirme türü</label>
+          <select id="artCutMode">
+            <option value="bridge">Tek parça köprü / Yatay H (yandan yüklemeli cepler)</option>
+            <option value="split">Ayrı kartlara böl (her cebe ayrı 63×88 mm kart)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <div class="slider-label-row">
+            <label for="artZoomRange">Görsel yakınlaştırma</label>
+            <div class="slider-actions">
+              <span id="artZoomValue">100%</span>
+              <button type="button" id="btnArtResetPan" class="btn-text">Ortala</button>
+            </div>
+          </div>
+          <input type="range" id="artZoomRange" min="100" max="280" value="100" />
+        </div>
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="artCaption">Başlık / set etiketi (ops.)</label>
+            <input type="text" id="artCaption" placeholder="Örn: Pokémon Card 151" />
+          </div>
+          <div class="form-group">
+            <label for="artCaptionPos">Etiket konumu</label>
+            <select id="artCaptionPos">
+              <option value="bottom-right">Sağ alt</option>
+              <option value="bottom-left">Sol alt</option>
+              <option value="bottom-center">Alt orta</option>
+              <option value="top-left">Sol üst</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" id="btnAddArtItem" class="btn btn-primary btn-block">Sayfaya ekle (çoklu baskı)</button>
+      </section>
+
+      <details class="panel settings" open>
+        <summary>Dikiş payı ve çentik kılavuzu ayarları</summary>
+        <div class="settings-grid">
+          <p class="helper-text">
+            Yandan yüklemeli binder'larda iki cep arasındaki dikiş boşluğu hesaba katılarak görselin kayması önlenir.
+          </p>
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label for="artColGap">Dikey cep arası (mm)</label>
+              <input type="number" id="artColGap" min="0" max="12" step="0.5" value="4" />
+            </div>
+            <div class="form-group">
+              <label for="artRowGap">Yatay satır arası (mm)</label>
+              <input type="number" id="artRowGap" min="0" max="12" step="0.5" value="5" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="artNotchDepth">Yatay H / çentik derinliği (mm)</label>
+            <input type="number" id="artNotchDepth" min="20" max="63" step="1" value="63" />
+          </div>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="artShowNotchGuides" checked />
+            <span>Yatay H çentik kesim kılavuzlarını (✂) göster</span>
+          </label>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="artShowPocketFold" checked />
+            <span>Cep birleşim hizalarını ince kılavuzla göster</span>
+          </label>
+        </div>
+      </details>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Baskı kuyruğu <span class="count"><span id="artQueueCount">0</span> parça</span></h2>
+          <button type="button" id="btnClearArtQueue" class="btn-text">Temizle</button>
+        </div>
+        <p class="helper-text queue-helper">
+          Bir A4 sayfasına alt alta 3 adet 2×1 veya 3×1 şerit sığar. Kuyruk boşsa o an düzenlediğiniz çalışma tek başına basılır.
+        </p>
+        <div id="artQueueList" class="card-list-sidebar"></div>
+      </section>
+    </aside>
+
+    <section class="preview-area">
+      <div id="a4PreviewToolbar" class="preview-toolbar no-print">
+        <span id="previewInfoText" class="preview-info">A4 (210 × 297 mm) · Yandan yüklemeli binder için dikiş paylı köprü &amp; Yatay H kesim</span>
+        <div class="zoom-controls">
+          <label for="zoomRange">Yakınlaştırma</label>
+          <input type="range" id="zoomRange" min="30" max="115" value="85" />
+          <span id="zoomValue">85%</span>
+        </div>
+      </div>
+      <p id="printTipText" class="print-tip no-print">Görseli fareyle sürükleyerek kadrajlayın. Yazdırırken ölçeği %100 (Gerçek Boyut) seçin.</p>
+
+      <div id="a4PagesContainer" class="a4-pages-container"></div>
+    </section>
+  </main>
+
+  <div id="toastNotice" class="toast hidden no-print" role="status" aria-live="polite"></div>
+
+  <script defer src="js/config/constants.js"></script>
+  <script defer src="js/config/sample-data.js"></script>
+  <script defer src="js/core/utils.js"></script>
+  <script defer src="js/core/storage.js"></script>
+  <script defer src="js/core/geometry.js"></script>
+  <script defer src="js/core/files.js"></script>
+  <script defer src="js/core/ui.js"></script>
+  <script defer src="js/binder-art/renderer.js"></script>
+  <script defer src="js/binder-art/page.js"></script>
+</body>
+</html>

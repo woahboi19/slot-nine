@@ -1,0 +1,17 @@
+# Agent & IDE configurations
+.agent/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs & temp files
+*.log
+npm-debug.log*
+node_modules/
+.env
+.env.*

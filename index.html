@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlotNine — Yer Tutucu Kart Oluşturucu</title>
+  <meta name="description" content="Pokémon TCG binder'ınız için 63×88 mm A4 yer tutucu kartlar hazırlayın." />
+  <meta name="theme-color" content="#16181b" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/a4-sheet.css" />
+  <link rel="stylesheet" href="css/placeholder.css" />
+</head>
+<body>
+  <noscript><p class="noscript-msg">Bu uygulama JavaScript gerektirir.</p></noscript>
+
+  <header class="app-header no-print">
+    <a href="index.html" class="brand-lockup">
+      <svg class="brand-logo" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="9.25" y="2" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="16.5" y="2" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="2" y="9.25" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="9.25" y="9.25" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="16.5" y="9.25" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="2" y="16.5" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="9.25" y="16.5" width="5.5" height="5.5" rx="1" fill="currentColor"/>
+        <rect x="17" y="17" width="4.5" height="4.5" rx="0.8" stroke="#7fa3b8" stroke-width="1.6" stroke-dasharray="2 1.5"/>
+      </svg>
+      <h1>SlotNine</h1>
+      <span class="brand-sub">TCG Binder Toolkit</span>
+    </a>
+
+    <nav class="tool-switcher" aria-label="Araç seçimi">
+      <a href="index.html" class="tool-tab active" aria-current="page">Yer Tutucu</a>
+      <a href="binder-art.html" class="tool-tab">Binder Art</a>
+      <a href="digital-binder.html" class="tool-tab">Dijital Binder</a>
+    </nav>
+
+    <div class="header-actions">
+      <button type="button" id="btnShareLink" class="btn" title="Mevcut kart listesini paylaşılabilir bağlantı olarak kopyala">Bağlantıyı kopyala</button>
+      <details class="menu" id="moreMenu">
+        <summary class="btn btn-menu">
+          <span>Daha fazla</span>
+          <svg class="menu-chevron" viewBox="0 0 12 12" width="11" height="11" fill="none" aria-hidden="true">
+            <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </summary>
+        <div class="menu-list">
+          <button type="button" id="btnOpenBulk">Toplu metin ekle</button>
+          <button type="button" id="btnLoadSamples">Örnek kartları yükle</button>
+          <button type="button" id="btnExportJson">JSON olarak indir</button>
+          <label class="menu-file">İçe aktar (JSON / CSV)
+            <input type="file" id="inputImportFile" accept=".json,.csv" hidden />
+          </label>
+          <button type="button" id="btnClearAll" class="danger">Tümünü temizle</button>
+        </div>
+      </details>
+      <button type="button" id="btnPrint" class="btn btn-primary">Yazdır</button>
+    </div>
+  </header>
+
+  <main class="app-workspace">
+    <aside id="sidebarPlaceholder" class="sidebar no-print">
+      <section class="panel">
+        <div class="panel-header">
+          <h2 id="formTitle">Yeni kart</h2>
+          <div class="panel-header-links">
+            <button type="button" id="btnQuickBulk" class="btn-text">Toplu ekle</button>
+            <button type="button" id="btnCancelEdit" class="btn-text hidden">Vazgeç</button>
+          </div>
+        </div>
+
+        <form id="cardForm" novalidate>
+          <input type="hidden" id="editingCardId" value="" />
+          <input type="hidden" id="cardImageUrl" value="" />
+
+          <div class="form-group">
+            <label for="cardName">Kart adı <span class="req">*</span></label>
+            <div class="input-with-action">
+              <div class="name-input-wrap">
+                <input type="text" id="cardName" placeholder="Charizard ex" autocomplete="off" required />
+                <span id="spritePreviewBadge" class="sprite-preview-badge hidden" title="Otomatik algılanan Pokémon sprite'ı">
+                  <img id="spritePreviewImg" src="" alt="" />
+                </span>
+              </div>
+              <button type="button" id="btnLookupCard" class="btn btn-sm" title="TCGdex üzerinden kart bilgilerini otomatik bul">Bul</button>
+            </div>
+            <div id="lookupDropdown" class="lookup-dropdown hidden"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="cardSubname">Alt bilgi</label>
+            <input type="text" id="cardSubname" placeholder="#006 · Special Illustration" />
+          </div>
+
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label for="cardType">Tip</label>
+              <select id="cardType">
+                <option value="colorless">Normal</option>
+                <option value="fire">Ateş</option>
+                <option value="water">Su</option>
+                <option value="grass">Çimen</option>
+                <option value="lightning">Elektrik</option>
+                <option value="psychic">Psişik</option>
+                <option value="fighting">Dövüş</option>
+                <option value="darkness">Karanlık</option>
+                <option value="metal">Metal</option>
+                <option value="dragon">Ejderha</option>
+                <option value="fairy">Peri</option>
+                <option value="trainer">Eğitmen</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cardRarity">Nadirlik</label>
+              <select id="cardRarity">
+                <option value="">Belirtilmedi</option>
+                <option value="Common">Common</option>
+                <option value="Uncommon">Uncommon</option>
+                <option value="Rare">Rare</option>
+                <option value="Double Rare">Double Rare</option>
+                <option value="Ultra Rare">Ultra Rare</option>
+                <option value="Illustration Rare">Illustration Rare</option>
+                <option value="Special Illustration Rare">Special Illustration Rare</option>
+                <option value="Hyper Rare">Hyper Rare</option>
+                <option value="Secret Rare">Secret Rare</option>
+                <option value="Promo">Promo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="cardNote">Genel not (opsiyonel)</label>
+            <input type="text" id="cardNote" placeholder="Örn: Grail hedef / Kanto starter" />
+          </div>
+
+          <div class="variants-section">
+            <div class="variants-header">
+              <div>
+                <h3>Dil, set ve fiyat <span class="req">*</span></h3>
+                <p class="helper-text">En az bir satır gerekli. Baskı alanına 1st Ed, Reverse, Master Ball, PSA 10 vb. yazabilirsiniz.</p>
+              </div>
+              <button type="button" id="btnAddVariant" class="btn btn-sm">Satır ekle</button>
+            </div>
+            <div id="variantsContainer" class="variants-container"></div>
+          </div>
+
+          <label class="checkbox-row template-keep-row">
+            <input type="checkbox" id="keepSetTemplate" checked />
+            <span>Sonraki kart için dil ve set adlarını koru</span>
+          </label>
+
+          <div id="formError" class="form-error hidden" role="alert"></div>
+
+          <button type="submit" id="btnSubmitCard" class="btn btn-primary btn-block">Kartı ekle</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Kartlar <span class="count"><span id="cardCountBadge">0</span> kart · <span id="pageCountBadge">1</span> A4 sayfası</span></h2>
+        </div>
+        <div id="cardListSidebar" class="card-list-sidebar"></div>
+      </section>
+
+      <details class="panel settings">
+        <summary>Sayfa ve kart ayarları</summary>
+        <div class="settings-grid">
+          <div class="form-group">
+            <label for="settingGapMode">Kartlar arası boşluk</label>
+            <select id="settingGapMode">
+              <option value="zero">Yok (bitişik kesim)</option>
+              <option value="small">2 mm</option>
+              <option value="medium">4 mm</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="settingThemeMode">Kart stili</label>
+            <select id="settingThemeMode">
+              <option value="color">Üstte tip rengi şeridi</option>
+              <option value="minimal">Tamamen siyah beyaz</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="settingQrProvider">Kart üzerinde piyasa QR kodu</label>
+            <select id="settingQrProvider">
+              <option value="none">Kapalı</option>
+              <option value="cardmarket">Cardmarket araması</option>
+              <option value="pricecharting">PriceCharting araması</option>
+              <option value="tcgplayer">TCGplayer araması</option>
+            </select>
+          </div>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="settingCropMarks" checked />
+            <span>Kesim çizgilerini göster</span>
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="settingFillEmptySlots" />
+            <span>Boş kalan yuvaları çerçeveyle göster</span>
+          </label>
+        </div>
+      </details>
+
+      <p class="disclaimer">
+        Kartlarınız yalnızca bu tarayıcıda saklanır, hiçbir sunucuya gönderilmez. Yedeklemek için JSON olarak indirin veya bağlantıyı kopyalayın.<br />
+        Resmi bir uygulama değildir. Pokémon ve ilgili adlar Nintendo, Creatures Inc. ve GAME FREAK inc.'e aittir.
+      </p>
+    </aside>
+
+    <section class="preview-area">
+      <div id="a4PreviewToolbar" class="preview-toolbar no-print">
+        <span id="previewInfoText" class="preview-info">A4 (210 × 297 mm) · Kart ölçüsü 63 × 88 mm · Sayfa başına 9 kart</span>
+        <div class="zoom-controls">
+          <label for="zoomRange">Yakınlaştırma</label>
+          <input type="range" id="zoomRange" min="30" max="115" value="85" />
+          <span id="zoomValue">85%</span>
+        </div>
+      </div>
+      <p id="printTipText" class="print-tip no-print">Doğru ölçü için yazdırırken ölçeği %100 (Gerçek Boyut), kenar boşluklarını "Yok" seçin.</p>
+
+      <div id="a4PagesContainer" class="a4-pages-container"></div>
+    </section>
+  </main>
+
+  <div id="bulkModal" class="modal-backdrop hidden no-print" role="dialog" aria-modal="true" aria-labelledby="bulkModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="bulkModalTitle">Toplu kart ekle</h3>
+        <button type="button" id="btnCloseBulk" class="btn-close" aria-label="Kapat">&times;</button>
+      </div>
+      <p class="modal-desc">
+        Her satıra bir kart gelecek şekilde <code>Kart Adı | Set | Numara | Fiyat | Dil | Baskı</code> formatında yazın veya yapıştırın. Aynı kart adını alt alta farklı dillerle yazarsanız tek kartta birleştirilir.
+      </p>
+      <textarea id="bulkTextarea" rows="8" placeholder="Charizard ex | Paldean Fates | 234/091 | $115 | EN | SIR&#10;Charizard ex | Shiny Treasure ex | 349/190 | ¥16,500 | JP&#10;Pikachu | Pokémon Card 151 | 173/165 | $24 | EN | Master Ball"></textarea>
+      <div id="bulkError" class="form-error hidden"></div>
+      <div class="modal-actions">
+        <button type="button" id="btnCancelBulk" class="btn">Vazgeç</button>
+        <button type="button" id="btnConfirmBulk" class="btn btn-primary">Kartları ekle</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastNotice" class="toast hidden no-print" role="status" aria-live="polite"></div>
+
+  <datalist id="editionSuggestions">
+    <option value="1st Edition"></option>
+    <option value="Reverse Holo"></option>
+    <option value="Holo"></option>
+    <option value="Poké Ball Holo"></option>
+    <option value="Master Ball Holo"></option>
+    <option value="Shadowless"></option>
+    <option value="Unlimited"></option>
+    <option value="Stamped"></option>
+    <option value="PSA 10"></option>
+    <option value="NM"></option>
+  </datalist>
+
+  <script defer src="js/config/constants.js"></script>
+  <script defer src="js/config/sample-data.js"></script>
+  <script defer src="js/core/utils.js"></script>
+  <script defer src="js/core/storage.js"></script>
+  <script defer src="js/core/files.js"></script>
+  <script defer src="js/core/share-url.js"></script>
+  <script defer src="js/core/ui.js"></script>
+  <script defer src="js/services/pokeapi.js"></script>
+  <script defer src="js/services/tcgdex.js"></script>
+  <script defer src="js/services/qr.js"></script>
+  <script defer src="js/placeholder/renderer.js"></script>
+  <script defer src="js/placeholder/import-export.js"></script>
+  <script defer src="js/placeholder/page.js"></script>
+</body>
+</html>
