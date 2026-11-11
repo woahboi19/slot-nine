@@ -111,7 +111,7 @@
       if (state.activeId !== artId) {
         state.activeId = artId;
         syncArtFormControls();
-        renderQueue();
+        BinderArtRenderer.updateActiveSelection(els.artQueueList, els.a4PagesContainer, state.items, state.activeId);
       }
 
       e.preventDefault();
@@ -152,7 +152,7 @@
         piece.panY = clamp(drag.startPanY - dyMm / drag.maxOffsetY, 0, 1);
       }
 
-      renderA4();
+      BinderArtRenderer.updatePieceTransform(els.a4PagesContainer, piece, state.settings);
     });
 
     const endArtDrag = e => {
@@ -216,7 +216,7 @@
       piece.zoom = Number(els.artZoomRange.value) || 100;
       els.artZoomValue.textContent = `${piece.zoom}%`;
       AppStorage.saveArtQueue(state.items);
-      renderA4();
+      BinderArtRenderer.updatePieceTransform(els.a4PagesContainer, piece, state.settings);
     });
 
     els.btnArtResetPan.addEventListener('click', () => {
@@ -225,20 +225,22 @@
       piece.panY = 0.5;
       piece.zoom = 100;
       syncArtFormControls();
-      persistQueueAndRender();
+      AppStorage.saveArtQueue(state.items);
+      BinderArtRenderer.updatePieceTransform(els.a4PagesContainer, piece, state.settings);
     });
 
     els.artCaption.addEventListener('input', () => {
       const piece = getActiveArtPiece();
       piece.caption = els.artCaption.value;
-      persistQueueAndRender();
+      AppStorage.saveArtQueue(state.items);
+      BinderArtRenderer.updatePieceCaption(els.artQueueList, els.a4PagesContainer, piece);
     });
 
     els.artCaptionPos.addEventListener('change', () => {
       const piece = getActiveArtPiece();
       piece.captionPos = els.artCaptionPos.value;
       AppStorage.saveArtQueue(state.items);
-      renderA4();
+      BinderArtRenderer.updatePieceCaption(els.artQueueList, els.a4PagesContainer, piece);
     });
 
     els.btnAddArtItem.addEventListener('click', () => {
@@ -262,7 +264,7 @@
       if (action === 'select') {
         state.activeId = id;
         syncArtFormControls();
-        renderAll();
+        BinderArtRenderer.updateActiveSelection(els.artQueueList, els.a4PagesContainer, state.items, state.activeId);
       } else if (action === 'dup') {
         const idx = state.items.findIndex(item => item.id === id);
         if (idx !== -1) {

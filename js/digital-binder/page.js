@@ -501,7 +501,7 @@
       if (item && item.kind === 'art') {
         item.zoom = z;
         AppStorage.saveBinders(state.binders);
-        renderDigitalBinder();
+        DigitalBinderRenderer.updateArtSlotTransform(els.binderSpreadViewport, item);
       }
     });
 
@@ -516,7 +516,7 @@
         item.panY = 0.5;
         item.zoom = 100;
         AppStorage.saveBinders(state.binders);
-        renderDigitalBinder();
+        DigitalBinderRenderer.updateArtSlotTransform(els.binderSpreadViewport, item);
       }
     });
 
@@ -608,7 +608,18 @@
             state.selectedSlotIndex = found.slotIndex;
             AppStorage.saveBinders(state.binders);
             syncBinderSlotEditor();
-            renderDigitalBinder();
+
+            if (binder.missingStyle === 'placeholder') {
+              renderDigitalBinder();
+            } else {
+              const isMissing = found.owned === false;
+              const slotWrap = toggleBadge.closest('.binder-card-slot');
+              slotWrap?.classList.toggle('is-missing', isMissing);
+              toggleBadge.className = `binder-status-badge ${isMissing ? 'status-missing' : 'status-owned'}`;
+              toggleBadge.textContent = isMissing ? 'EKSİK' : 'VAR';
+              DigitalBinderRenderer.updateSelectedPocket(els.binderSpreadViewport, state);
+              DigitalBinderRenderer.updateStatsBar(els.binderStatsSummary, binder);
+            }
             break;
           }
         }
@@ -621,7 +632,7 @@
         state.selectedSlotIndex = Number(pocket.dataset.slotIndex) || 0;
         els.binderLookupDropdown.classList.add('hidden');
         syncBinderSlotEditor();
-        renderDigitalBinder();
+        DigitalBinderRenderer.updateSelectedPocket(els.binderSpreadViewport, state);
       }
     });
 
@@ -642,6 +653,7 @@
       state.selectedPageId = pageId;
       state.selectedSlotIndex = artItem.slotIndex;
       syncBinderSlotEditor();
+      DigitalBinderRenderer.updateSelectedPocket(els.binderSpreadViewport, state);
 
       state.panDrag = {
         pointerId: e.pointerId,
@@ -674,7 +686,7 @@
         artItem.panY = clamp(pd.startPanY - dy / pd.maxOffY, 0, 1);
         state.draftArtPanY = artItem.panY;
       }
-      renderDigitalBinder();
+      DigitalBinderRenderer.updateArtSlotTransform(els.binderSpreadViewport, artItem);
     });
 
     const endBinderPan = e => {

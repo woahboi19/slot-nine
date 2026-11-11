@@ -82,7 +82,7 @@ const DigitalBinderRenderer = (() => {
             slotWrap.className = `binder-card-slot${isMissing ? ' is-missing' : ''}`;
             const imgUrl = card.cardArtUrl || card.spriteUrl || '';
             slotWrap.innerHTML = `
-              ${imgUrl ? `<img class="binder-card-art-img" src="${escapeHtml(imgUrl)}" alt="${escapeHtml(card.name)}" loading="lazy" data-hide-on-error="self" />` : ''}
+              ${imgUrl ? `<img class="binder-card-art-img" src="${escapeHtml(imgUrl)}" alt="${escapeHtml(card.name)}" decoding="async" data-hide-on-error="self" />` : ''}
               <span class="binder-status-badge ${isMissing ? 'status-missing' : 'status-owned'}" data-toggle-owned="${escapeHtml(card.id)}" title="Sahibim / Eksik durumunu değiştirmek için tıklayın">
                 ${isMissing ? 'EKSİK' : 'VAR'}
               </span>
@@ -120,6 +120,8 @@ const DigitalBinderRenderer = (() => {
           artBox.className = 'binder-art-slot';
           artBox.dataset.panPageId = page.id;
           artBox.dataset.panArtId = art.id;
+          artBox.dataset.boxW = String(totalPxW);
+          artBox.dataset.boxH = String(totalPxH);
           artBox.dataset.maxOffX = String(cover.maxOffsetX);
           artBox.dataset.maxOffY = String(cover.maxOffsetY);
 
@@ -219,7 +221,52 @@ const DigitalBinderRenderer = (() => {
     viewportEl.replaceChildren(book);
   }
 
+  function updateSelectedPocket(viewportEl, viewState) {
+    viewportEl.querySelectorAll('.binder-pocket[data-page-id]').forEach(pocket => {
+      const isSelected =
+        pocket.dataset.pageId === viewState.selectedPageId &&
+        Number(pocket.dataset.slotIndex) === viewState.selectedSlotIndex;
+      pocket.classList.toggle('selected-pocket', isSelected);
+    });
+  }
+
+  function updateArtSlotTransform(viewportEl, artItem) {
+    viewportEl.querySelectorAll('.binder-art-slot[data-pan-art-id]').forEach(artBox => {
+      if (artBox.dataset.panArtId !== artItem.id) return;
+      const boxW = Number(artBox.dataset.boxW) || 400;
+      const boxH = Number(artBox.dataset.boxH) || 184;
+      const cover = computeCoverBox({
+        boxW,
+        boxH,
+        aspectRatio: artItem.aspectRatio,
+        zoom: artItem.zoom,
+        maxZoom: 280,
+        panX: artItem.panX,
+        panY: artItem.panY
+      });
+      artBox.dataset.maxOffX = String(cover.maxOffsetX);
+      artBox.dataset.maxOffY = String(cover.maxOffsetY);
+
+      const imgEl = artBox.querySelector('img');
+      if (imgEl) {
+        imgEl.style.width = `${cover.imgW}px`;
+        imgEl.style.height = `${cover.imgH}px`;
+        imgEl.style.transform = `translate(${cover.offsetX}px, ${cover.offsetY}px)`;
+      }
+    });
+  }
+
+  function updateStatsBar(statsEl, binder) {
+    const spec = BinderModel.getGridSpec(binder);
+    const { totalCards, ownedCards, missingCards, totalArt } = BinderModel.computeBinderStats(binder);
+    statsEl.textContent =
+      `${binder.name} (${spec.cols}×${spec.rows}) · Toplam ${totalCards} kart (${ownedCards} Sahibim, ${missingCards} Eksik) · ${totalArt} Binder Art`;
+  }
+
   return {
-    renderBinderStage
+    renderBinderStage,
+    updateSelectedPocket,
+    updateArtSlotTransform,
+    updateStatsBar
   };
 })();

@@ -1,3 +1,7 @@
+@view-transition {
+  navigation: auto;
+}
+
 :root {
   --bg: #16181b;
   --bg-preview: #101214;

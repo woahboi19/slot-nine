@@ -126,7 +126,7 @@ const PlaceholderRenderer = (() => {
               <div class="card-pokemon-name${card.name.length > 18 ? ' long-name' : ''}">${escapeHtml(card.name)}</div>
               ${card.subname ? `<div class="card-subname">${escapeHtml(card.subname)}</div>` : ''}
             </div>
-            ${card.imageUrl ? `<div class="card-thumb-box"><img src="${escapeHtml(card.imageUrl)}" alt="${escapeHtml(card.name)}" loading="lazy" data-hide-on-error="parent" /></div>` : ''}
+            ${card.imageUrl ? `<div class="card-thumb-box"><img src="${escapeHtml(card.imageUrl)}" alt="${escapeHtml(card.name)}" decoding="async" data-hide-on-error="parent" /></div>` : ''}
           </div>
         </div>
 
@@ -200,9 +200,31 @@ const PlaceholderRenderer = (() => {
     containerEl.replaceChildren(fragment);
   }
 
+  function updateEditingState(sidebarEl, editingId) {
+    sidebarEl.querySelectorAll('.sidebar-card-item[data-card-id]').forEach(item => {
+      item.classList.toggle('editing', item.dataset.cardId === editingId);
+    });
+  }
+
+  function applyVisualSettings(containerEl, settings) {
+    containerEl.classList.toggle('theme-minimal', settings.themeMode === 'minimal');
+    containerEl.classList.toggle('show-crop-marks', settings.cropMarks);
+
+    containerEl.querySelectorAll('.tcg-grid').forEach(grid => {
+      grid.className = `tcg-grid gap-${settings.gapMode}`;
+    });
+
+    containerEl.querySelectorAll('.tcg-card.empty-slot').forEach(slot => {
+      slot.classList.toggle('invisible-slot', !settings.fillEmptySlots);
+      slot.innerHTML = settings.fillEmptySlots ? '<span class="empty-slot-label">Boş</span>' : '';
+    });
+  }
+
   return {
     createVariantRow,
     renderSidebarList,
-    renderA4Pages
+    renderA4Pages,
+    updateEditingState,
+    applyVisualSettings
   };
 })();

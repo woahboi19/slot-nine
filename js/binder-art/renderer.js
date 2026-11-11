@@ -112,6 +112,8 @@ const BinderArtRenderer = (() => {
         const tile = document.createElement('div');
         tile.className = 'art-split-tile art-bridge-piece interactive-pan';
         tile.dataset.artId = piece.id;
+        tile.dataset.tileR = String(r);
+        tile.dataset.tileC = String(c);
         tile.title = `${piece.title} — Satır ${r + 1}, Sütun ${c + 1} (Sürükleyerek kaydırın)`;
 
         const slotOriginX = c * (SLOT_WIDTH_MM + colGap);
@@ -241,8 +243,87 @@ const BinderArtRenderer = (() => {
     containerEl.replaceChildren(fragment);
   }
 
+  function updatePieceTransform(containerEl, piece, settings) {
+    const geo = computeArtGeometry(piece, settings);
+    const { colGap, rowGap, imgW, imgH, offsetX, offsetY } = geo;
+
+    containerEl.querySelectorAll('.art-bridge-piece[data-art-id]').forEach(el => {
+      if (el.dataset.artId !== piece.id) return;
+      const img = el.querySelector('.art-piece-img');
+      if (!img) return;
+      img.style.width = `${imgW}mm`;
+      img.style.height = `${imgH}mm`;
+
+      if (el.classList.contains('art-split-tile')) {
+        const r = Number(el.dataset.tileR) || 0;
+        const c = Number(el.dataset.tileC) || 0;
+        const slotOriginX = c * (SLOT_WIDTH_MM + colGap);
+        const slotOriginY = r * (SLOT_HEIGHT_MM + rowGap);
+        img.style.transform = `translate(${offsetX - slotOriginX}mm, ${offsetY - slotOriginY}mm)`;
+      } else {
+        img.style.transform = `translate(${offsetX}mm, ${offsetY}mm)`;
+      }
+    });
+  }
+
+  function updateActiveSelection(queueEl, containerEl, items, activeId) {
+    queueEl.querySelectorAll('.sidebar-card-item[data-art-id]').forEach(row => {
+      row.classList.toggle('editing', row.dataset.artId === activeId);
+    });
+    containerEl.querySelectorAll('.art-bridge-piece[data-art-id]').forEach(el => {
+      if (!el.classList.contains('art-split-tile')) {
+        el.classList.toggle('is-selected', items.length > 1 && el.dataset.artId === activeId);
+      }
+    });
+  }
+
+  function updatePieceCaption(queueEl, containerEl, piece) {
+    const tplInfo = ART_TEMPLATES[piece.tpl] || ART_TEMPLATES['2x1'];
+    const modeLabel = piece.cutMode === 'split' ? 'Ayrı kartlar' : 'Tek parça köprü';
+    queueEl.querySelectorAll('.sidebar-card-item[data-art-id]').forEach(row => {
+      if (row.dataset.artId !== piece.id) return;
+      const meta = row.querySelector('.sidebar-card-meta');
+      if (meta) {
+        meta.textContent = `${tplInfo.title} · ${modeLabel}${piece.caption ? ` · "${piece.caption}"` : ''}`;
+      }
+    });
+
+    const { cols, rows } = tplInfo;
+    const text = (piece.caption || '').trim();
+    const posClass = `pos-${piece.captionPos || 'bottom-right'}`;
+
+    containerEl.querySelectorAll('.art-bridge-piece[data-art-id]').forEach(el => {
+      if (el.dataset.artId !== piece.id) return;
+      let shouldHaveBadge = Boolean(text);
+      if (shouldHaveBadge && el.classList.contains('art-split-tile')) {
+        const r = Number(el.dataset.tileR) || 0;
+        const c = Number(el.dataset.tileC) || 0;
+        shouldHaveBadge =
+          (piece.captionPos === 'top-left' && r === 0 && c === 0) ||
+          (piece.captionPos === 'bottom-left' && r === rows - 1 && c === 0) ||
+          (piece.captionPos === 'bottom-center' && r === rows - 1 && c === Math.floor(cols / 2)) ||
+          ((!piece.captionPos || piece.captionPos === 'bottom-right') && r === rows - 1 && c === cols - 1);
+      }
+
+      let badge = el.querySelector('.art-caption-badge');
+      if (shouldHaveBadge) {
+        if (!badge) {
+          badge = document.createElement('div');
+          el.appendChild(badge);
+        }
+        badge.className = `art-caption-badge ${posClass}`;
+        badge.textContent = text;
+      } else if (badge) {
+        badge.remove();
+      }
+    });
+  }
+
   return {
     renderQueueList,
-    renderA4Pages
+    renderA4Pages,
+    updatePieceTransform,
+    updateActiveSelection,
+    updatePieceCaption
   };
 })();

@@ -268,7 +268,7 @@
 
     els.variantsContainer.replaceChildren();
     templateRows.forEach(r => addVariantRow(r));
-    renderSidebar();
+    PlaceholderRenderer.updateEditingState(els.cardListSidebar, '');
   }
 
   async function handleFormSubmit(e) {
@@ -374,7 +374,7 @@
     els.btnSubmitCard.textContent = 'Değişiklikleri kaydet';
     els.btnCancelEdit.classList.remove('hidden');
 
-    renderSidebar();
+    PlaceholderRenderer.updateEditingState(els.cardListSidebar, card.id);
     els.cardName.focus();
   }
 
@@ -458,13 +458,19 @@
     });
 
     const handleSettingChange = () => {
+      const prevQr = state.settings.qrProvider;
       state.settings.gapMode = els.settingGapMode.value;
       state.settings.themeMode = els.settingThemeMode.value;
       state.settings.qrProvider = els.settingQrProvider.value;
       state.settings.cropMarks = els.settingCropMarks.checked;
       state.settings.fillEmptySlots = els.settingFillEmptySlots.checked;
       AppStorage.savePlaceholderSettings(state.settings);
-      PlaceholderRenderer.renderA4Pages(els.a4PagesContainer, state.cards, state.settings);
+
+      if (prevQr !== state.settings.qrProvider) {
+        PlaceholderRenderer.renderA4Pages(els.a4PagesContainer, state.cards, state.settings);
+      } else {
+        PlaceholderRenderer.applyVisualSettings(els.a4PagesContainer, state.settings);
+      }
     };
 
     els.settingGapMode.addEventListener('change', handleSettingChange);
