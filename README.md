@@ -12,6 +12,7 @@ Pokémon TCG koleksiyoncuları için tarayıcı tabanlı, sunucusuz (tamamen yer
 ├── index.html                  # Yer Tutucu (63×88 mm A4 kart) aracı
 ├── binder-art.html             # Binder Art (Köprü / Yatay H) aracı
 ├── digital-binder.html         # Dijital Binder planlayıcı aracı
+├── info.html                   # Sürüm notları, kullanım hatırlatmaları, yol haritası ve Patreon sayfası
 ├── assets/
 │   └── favicon.svg             # Uygulama ikonu
 ├── css/
@@ -20,7 +21,8 @@ Pokémon TCG koleksiyoncuları için tarayıcı tabanlı, sunucusuz (tamamen yer
 │   ├── a4-sheet.css            # A4 önizleme sahnesi, 3×3 ızgara ve yazdırma (@media print) kuralları
 │   ├── placeholder.css         # 63×88 mm yer tutucu kart ve varyant satırı stilleri
 │   ├── binder-art.css          # Köprü parçaları, dikiş payı ve çentik kılavuzları
-│   └── digital-binder.css      # Dijital binder sahnesi, cepler ve durum rozetleri
+│   ├── digital-binder.css      # Dijital binder sahnesi, cepler ve durum rozetleri
+│   └── info.css                # Bilgi, sürüm geçmişi ve destek sayfası stilleri
 └── js/
     ├── config/
     │   ├── constants.js        # Sabit ölçüler, dil listesi, şablonlar ve depolama anahtarları
